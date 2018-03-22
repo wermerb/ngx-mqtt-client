@@ -24,10 +24,8 @@ export class AppComponent implements OnDestroy {
     subscribe(): void {
         this._mqttService.subscribeTo<Foo>('fooBar')
             .subscribe((msg: Foo) => {
-                this.messages.push(msg)
+                this.messages.push(msg);
             });
-
-
         this.messages.push('Successfully subscribed!' as any);
     }
 
@@ -48,8 +46,8 @@ export class AppComponent implements OnDestroy {
     unsubscribe(): void {
         this._mqttService.unsubscribeFrom('fooBar').subscribe({
             next: () => this.messages.push('Successfully unsubscribed!' as any),
-            error: () =>this.messages.push('oopsie something went wrong' as any)
-        })
+            error: () => this.messages.push('oopsie something went wrong' as any)
+        });
     }
 
     /**

@@ -16,7 +16,7 @@ export class MqttService {
 
     private _store: { [topic: string]: Subject<any> } = {};
 
-    constructor(@Inject(MQTT_CONFIG) config: IClientOptions,) {
+    constructor(@Inject(MQTT_CONFIG) config: IClientOptions) {
         this._client = mqtt.connect(null, config);
         this._client.on('message', (topic, message) => this.updateTopic(topic, message.toString()));
     }
