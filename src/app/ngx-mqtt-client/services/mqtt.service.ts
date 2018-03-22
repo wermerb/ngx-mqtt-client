@@ -112,7 +112,7 @@ export class MqttService {
         let msg: string | object;
         try {
             msg = JSON.parse(message);
-        } catch {
+        } catch (ex) {
             msg = message;
         }
         this._store[topic].next(msg);
