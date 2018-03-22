@@ -1,4 +1,4 @@
-# NgxSocialLogin 
+# NgxSocialLogin [![npm version](https://badge.fury.io/js/ngx-mqtt-client.svg)](https://badge.fury.io/js/ngx-mqtt-client) [![bitHound Code](https://www.bithound.io/github/wermerb/ngx-mqtt-client/badges/code.svg)](https://www.bithound.io/github/wermerb/ngx-mqtt-client)
 
 This is a MQTT.js wrapper which provides reactive and strongly typed api for mqtt.
 
@@ -99,4 +99,12 @@ export class AppComponent implements OnDestroy {
 
 }
 
+```
+
+### Demo
+```bash
+git clone https://github.com/wermerb/ngx-mqtt-client.git
+cd ngx-mqtt-client
+yarn / npm install
+ng serve
 ```

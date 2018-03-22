@@ -1,5 +1,5 @@
 import {Component, OnDestroy} from '@angular/core';
-import {MqttService} from './ngx-mqtt-client/services/mqtt.service';
+import {MqttService} from './ngx-mqtt-client';
 
 export interface Foo {
     bar: string;
