@@ -1,27 +1,102 @@
-# NgxMqttClient
+# NgxSocialLogin 
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.3.
+This is a MQTT.js wrapper which provides reactive and strongly typed api for mqtt.
 
-## Development server
+## Getting started
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+### Install via npm/yarn 
 
-## Code scaffolding
+```sh
+npm install --save ngx-mqtt-client
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```sh
+yarn add ngx-social-login
+```
 
-## Build
+### Import the module
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
+Import `NgxMqttClientModule` into your `Module`.
+You can provide any configuration that is supported by MQTT.js.
 
-## Running unit tests
+```javascript
+@NgModule({
+    declarations: [ ... ],
+    imports: [
+        ...
+        NgxMqttClientModule.forRoot({
+            host: 'broker.hivemq.com',
+            protocol: 'ws',
+            port: 8000,
+            path: '/mqtt'
+        })
+        ...
+    ],
+    providers: [ ... ]
+})
+export class AppModule {
+}
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### How to use
 
-## Running end-to-end tests
+```javascript
+export interface Foo {
+    bar: string;
+}
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+@Component({
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss']
+})
+export class AppComponent implements OnDestroy {
 
-## Further help
+    messages: Array<Foo> = [];
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+    constructor(private _mqttService: MqttService) {
+    }
+
+    /**
+     * Subscribes to fooBar topic.
+     * This subscription will only emit new value if someone publish into the fooBar topic.
+     * */
+    subscribe(): void {
+        this._mqttService.subscribeTo<Foo>('fooBar')
+            .subscribe((msg: Foo) => {
+                this.messages.push(msg)
+            });
+    }
+
+
+    /**
+     * Sends message to fooBar topic.
+     */
+    sendMsg(): void {
+        this._mqttService.publishTo<Foo>('fooBar', {bar: 'foo'}).subscribe({
+            next: () => console.log('message sent'),
+            error: () => console.error('oopsie something went wrong')
+        });
+    }
+
+    /**
+     * Unsubscribe from fooBar topic.
+     */
+    unsubscribe(): void {
+        this._mqttService.unsubscribeFrom('fooBar').subscribe({
+            next: () => this.messages.push('Successfully unsubscribed!' as any),
+            error: () =>this.messages.push('oopsie something went wrong' as any)
+        })
+    }
+
+    /**
+     * The purpose of this is, when the user leave the app we should cleanup our subscriptions
+     * and close the connection with the broker
+     */
+    ngOnDestroy(): void {
+        this._mqttService.end();
+    }
+
+}
+
+```
