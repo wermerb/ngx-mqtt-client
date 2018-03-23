@@ -84,8 +84,8 @@ export class AppComponent implements OnDestroy {
      */
     unsubscribe(): void {
         this._mqttService.unsubscribeFrom('fooBar').subscribe({
-            next: () => console.log('Successfully unsubscribed!' as any),
-            error: (err: Error) => console.error(`oopsie something went wrong: ${err.message}` as any)
+            next: () => console.log('Successfully unsubscribed!'),
+            error: (err: Error) => console.error(`oopsie something went wrong: ${err.message}`)
         })
     }
 
