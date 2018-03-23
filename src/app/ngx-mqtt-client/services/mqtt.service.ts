@@ -23,13 +23,16 @@ export class MqttService {
 
     subscribeTo<T>(topic: string): Observable<T> {
         return fromPromise(new Promise((resolve, reject) => {
-            this._client.subscribe(topic, (error: Error, granted: Array<ISubscriptionGrant>) => {
-                if (error) {
-                    reject(error);
-                }
+            if (!this._store[topic]) {
+                this._client.subscribe(topic, (error: Error, granted: Array<ISubscriptionGrant>) => {
+                    if (error) {
+                        reject(error);
+                    }
 
-                resolve(granted);
-            });
+                    resolve(granted);
+                });
+            }
+            resolve();
         })).pipe(
             switchMap(() => this.addTopic<T>(topic))
         );
@@ -51,14 +54,8 @@ export class MqttService {
         })).pipe(
             map(() => {
                 this._store[topic].unsubscribe();
-                this._store = Object.keys(this._store).reduce((obj, top) => {
-                    if (top !== topic) {
-                        obj[top] = this._store[top];
-                    }
-
-                    return obj;
-                }, {});
-
+                const {[topic]: removed, ...newStore} = this._store;
+                this._store = newStore;
                 return empty();
             })
         );
@@ -119,7 +116,9 @@ export class MqttService {
     }
 
     private addTopic<T>(topic: string): Observable<T> {
-        this._store[topic] = new Subject<T>();
+        if (!this._store[topic]) {
+            this._store[topic] = new Subject<T>();
+        }
         return this._store[topic];
     }
 }
