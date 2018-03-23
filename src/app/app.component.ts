@@ -26,10 +26,6 @@ export class AppComponent implements OnDestroy {
             .subscribe((msg: Foo) => {
                 this.messages.push(msg);
             });
-        this._mqttService.subscribeTo<Foo>('fooBar1')
-            .subscribe((msg: Foo) => {
-                this.messages.push(msg);
-            });
         this.messages.push('Successfully subscribed!' as any);
     }
 
