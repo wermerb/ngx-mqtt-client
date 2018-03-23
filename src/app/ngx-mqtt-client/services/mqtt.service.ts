@@ -1,6 +1,6 @@
 import {Inject, Injectable} from '@angular/core';
 import * as mqtt from 'mqtt';
-import {IClientOptions, IClientPublishOptions, ISubscriptionGrant, MqttClient} from 'mqtt';
+import {IClientOptions, IClientPublishOptions, IClientSubscribeOptions, ISubscriptionGrant, MqttClient} from 'mqtt';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
@@ -21,10 +21,10 @@ export class MqttService {
         this._client.on('message', (topic, message) => this.updateTopic(topic, message.toString()));
     }
 
-    subscribeTo<T>(topic: string): Observable<T> {
+    subscribeTo<T>(topic: string, options?: IClientSubscribeOptions): Observable<T> {
         return fromPromise(new Promise((resolve, reject) => {
             if (!this._store[topic]) {
-                this._client.subscribe(topic, (error: Error, granted: Array<ISubscriptionGrant>) => {
+                this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) => {
                     if (error) {
                         reject(error);
                     }
@@ -100,9 +100,8 @@ export class MqttService {
     }
 
     private unsubscribeAll(): void {
-        Object.keys(this._store).forEach(key => {
-            this._store[key].unsubscribe();
-        });
+        const topics = Object.keys(this._store);
+        this._client.unsubscribe(topics);
     }
 
     private updateTopic(topic: string, message: string): void {
