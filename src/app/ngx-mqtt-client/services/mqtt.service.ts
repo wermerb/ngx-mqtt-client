@@ -6,7 +6,7 @@ import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
 import {map, switchMap} from 'rxjs/operators';
-import {of} from 'rxjs/observable/of';
+import 'rxjs/add/observable/throw';
 import {empty} from 'rxjs/observable/empty';
 
 @Injectable()
@@ -40,7 +40,7 @@ export class MqttService {
 
     unsubscribeFrom(topic: string): Observable<any> {
         if (!this._store[topic]) {
-            return of(new Error(`Cannot unsubscribe. ${topic} topic does not exists.`));
+            return Observable.throw(new Error(`Cannot unsubscribe. ${topic} topic does not exists.`));
         }
 
         return fromPromise(new Promise((resolve, reject) => {
