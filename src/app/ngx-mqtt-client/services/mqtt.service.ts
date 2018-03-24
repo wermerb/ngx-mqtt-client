@@ -41,7 +41,7 @@ export class MqttService {
                 [of(granted), this.addTopic<T>(topic, granted)]
             ),
             switchMap((message: any) => message)
-        )
+        );
     }
 
     unsubscribeFrom(topic: string): Observable<any> {
@@ -121,7 +121,6 @@ export class MqttService {
     }
 
     private addTopic<T>(topic: string, grant: SubscriptionGrant): Observable<T> {
-        console.log('itt')
         if (!this._store[topic]) {
             this._store[topic] = {grant, stream: new Subject<T>()};
         }
