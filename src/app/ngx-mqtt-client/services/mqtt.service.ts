@@ -47,7 +47,7 @@ export class MqttService {
         if (Array.isArray(topic)) {
             topic.forEach(t => {
                 this.removeTopic(t);
-            })
+            });
         } else {
             this.removeTopic(topic);
         }
@@ -60,7 +60,7 @@ export class MqttService {
 
                 resolve();
             });
-        }))
+        }));
     }
 
     publishTo<T>(topic: string,
