@@ -66,7 +66,7 @@ export class AppComponent implements OnDestroy {
         this._mqttService.subscribeTo<Foo>('fooBar').pipe()
             .subscribe((msg: SubscriptionGrant | Foo) => {
                 if (msg instanceof SubscriptionGrant) {
-                    this.messages.push('Successfully subscribed!' as any);
+                    console.log('Successfully subscribed!');
                 } else {
                     this.messages.push(msg);
                 }
