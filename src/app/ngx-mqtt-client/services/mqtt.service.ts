@@ -5,37 +5,43 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
-import {map, switchMap} from 'rxjs/operators';
+import {map, mergeMap, switchMap} from 'rxjs/operators';
 import 'rxjs/add/observable/throw';
 import {empty} from 'rxjs/observable/empty';
+import {of} from 'rxjs/observable/of';
+import {SubscriptionGrant} from '../models/subscription-grant';
+import {TopicStore} from '../models/topic-store';
 
 @Injectable()
 export class MqttService {
 
     private _client: MqttClient;
 
-    private _store: { [topic: string]: Subject<any> } = {};
+    private _store: { [topic: string]: TopicStore<any> } = {};
 
     constructor(@Inject(MQTT_CONFIG) config: IClientOptions) {
         this._client = mqtt.connect(null, config);
         this._client.on('message', (topic, message) => this.updateTopic(topic, message.toString()));
     }
 
-    subscribeTo<T>(topic: string, options?: IClientSubscribeOptions): Observable<T> {
+    subscribeTo<T>(topic: string, options?: IClientSubscribeOptions): Observable<(SubscriptionGrant | T)> {
         return fromPromise(new Promise((resolve, reject) => {
             if (!this._store[topic]) {
                 this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) => {
                     if (error) {
                         reject(error);
                     }
-
-                    resolve(granted);
+                    resolve(new SubscriptionGrant(granted[0]));
                 });
+            } else {
+                resolve(this._store[topic].grant);
             }
-            resolve();
         })).pipe(
-            switchMap(() => this.addTopic<T>(topic))
-        );
+            mergeMap((granted: SubscriptionGrant) =>
+                [of(granted), this.addTopic<T>(topic, granted)]
+            ),
+            switchMap((message: any) => message)
+        )
     }
 
     unsubscribeFrom(topic: string): Observable<any> {
@@ -53,7 +59,7 @@ export class MqttService {
             });
         })).pipe(
             map(() => {
-                this._store[topic].unsubscribe();
+                this._store[topic].stream.unsubscribe();
                 const {[topic]: removed, ...newStore} = this._store;
                 this._store = newStore;
                 return empty();
@@ -111,13 +117,14 @@ export class MqttService {
         } catch (ex) {
             msg = message;
         }
-        this._store[topic].next(msg);
+        this._store[topic].stream.next(msg);
     }
 
-    private addTopic<T>(topic: string): Observable<T> {
+    private addTopic<T>(topic: string, grant: SubscriptionGrant): Observable<T> {
+        console.log('itt')
         if (!this._store[topic]) {
-            this._store[topic] = new Subject<T>();
+            this._store[topic] = {grant, stream: new Subject<T>()};
         }
-        return this._store[topic];
+        return this._store[topic].stream;
     }
 }

@@ -59,12 +59,17 @@ export class AppComponent implements OnDestroy {
 
     /**
      * Subscribes to fooBar topic.
-     * This subscription will only emit new value if someone publish into the fooBar topic.
+     * The first emitted value will be a {@see SubscriptionGrant} to confirm your subscription was successful. 
+     * After that the subscription will only emit new value if someone publishes into the fooBar topic.
      * */
     subscribe(): void {
-        this._mqttService.subscribeTo<Foo>('fooBar')
-            .subscribe((msg: Foo) => {
-                this.messages.push(msg)
+        this._mqttService.subscribeTo<any>('fooBar').pipe()
+            .subscribe((msg) => {
+                if (msg instanceof SubscriptionGrant) {
+                    console.log('Successfully subscribed!');
+                } else {
+                    this.messages.push(msg);
+                }
             });
     }
 

@@ -1,5 +1,5 @@
 import {Component, OnDestroy} from '@angular/core';
-import {MqttService} from './ngx-mqtt-client';
+import {MqttService, SubscriptionGrant} from './ngx-mqtt-client';
 
 export interface Foo {
     bar: string;
@@ -19,14 +19,18 @@ export class AppComponent implements OnDestroy {
 
     /**
      * Subscribes to fooBar topic.
-     * This subscription will only emit new value if someone publish into the fooBar topic.
+     * The first emitted value will be a {@see SubscriptionGrant} to confirm your subscription was successful.
+     * After that the subscription will only emit new value if someone publishes into the fooBar topic.
      * */
     subscribe(): void {
-        this._mqttService.subscribeTo<Foo>('fooBar')
-            .subscribe((msg: Foo) => {
-                this.messages.push(msg);
+        this._mqttService.subscribeTo<any>('fooBar').pipe()
+            .subscribe((msg) => {
+                if (msg instanceof SubscriptionGrant) {
+                    this.messages.push('Successfully subscribed!' as any);
+                } else {
+                    this.messages.push(msg);
+                }
             });
-        this.messages.push('Successfully subscribed!' as any);
     }
 
 
