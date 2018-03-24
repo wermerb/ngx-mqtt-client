@@ -45,10 +45,6 @@ export class MqttService {
     }
 
     unsubscribeFrom(topic: string): Observable<any> {
-        if (!this._store[topic]) {
-            return Observable.throw(new Error(`Cannot unsubscribe. ${topic} topic does not exists.`));
-        }
-
         return fromPromise(new Promise((resolve, reject) => {
             this._client.unsubscribe(topic, (error: Error) => {
                 if (error) {
@@ -59,9 +55,12 @@ export class MqttService {
             });
         })).pipe(
             map(() => {
-                this._store[topic].stream.unsubscribe();
-                const {[topic]: removed, ...newStore} = this._store;
-                this._store = newStore;
+                if (this._store[topic]) {
+                    this._store[topic].stream.unsubscribe();
+                    const {[topic]: removed, ...newStore} = this._store;
+                    this._store = newStore;
+                }
+
                 return empty();
             })
         );
