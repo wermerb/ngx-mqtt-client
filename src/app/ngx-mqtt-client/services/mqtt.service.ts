@@ -5,9 +5,8 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
-import {map, mergeMap, switchMap} from 'rxjs/operators';
+import {mergeMap, switchMap} from 'rxjs/operators';
 import 'rxjs/add/observable/throw';
-import {empty} from 'rxjs/observable/empty';
 import {of} from 'rxjs/observable/of';
 import {SubscriptionGrant} from '../models/subscription-grant';
 import {TopicStore} from '../models/topic-store';
@@ -44,7 +43,15 @@ export class MqttService {
         );
     }
 
-    unsubscribeFrom(topic: string): Observable<any> {
+    unsubscribeFrom(topic: string | Array<string>): Observable<any> {
+        if (Array.isArray(topic)) {
+            topic.forEach(t => {
+                this.removeTopic(t);
+            })
+        } else {
+            this.removeTopic(topic);
+        }
+
         return fromPromise(new Promise((resolve, reject) => {
             this._client.unsubscribe(topic, (error: Error) => {
                 if (error) {
@@ -53,17 +60,7 @@ export class MqttService {
 
                 resolve();
             });
-        })).pipe(
-            map(() => {
-                if (this._store[topic]) {
-                    this._store[topic].stream.unsubscribe();
-                    const {[topic]: removed, ...newStore} = this._store;
-                    this._store = newStore;
-                }
-
-                return empty();
-            })
-        );
+        }))
     }
 
     publishTo<T>(topic: string,
@@ -100,13 +97,15 @@ export class MqttService {
     }
 
     end(force?: boolean, cb?: (...args) => void): void {
-        this.unsubscribeAll();
+        const topics = Object.keys(this._store);
+        this.unsubscribeFrom(topics);
         this._client.end(force, cb);
     }
 
-    private unsubscribeAll(): void {
-        const topics = Object.keys(this._store);
-        this._client.unsubscribe(topics);
+    private removeTopic(topic: string): void {
+        this._store[topic].stream.unsubscribe();
+        const {[topic]: removed, ...newStore} = this._store;
+        this._store = newStore;
     }
 
     private updateTopic(topic: string, message: string): void {
