@@ -26,12 +26,8 @@ export class MqttService {
     subscribeTo<T>(topic: string, options?: IClientSubscribeOptions): Observable<(SubscriptionGrant | T)> {
         return fromPromise(new Promise((resolve, reject) => {
             if (!this._store[topic]) {
-                this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) => {
-                    if (error) {
-                        reject(error);
-                    }
-                    resolve(new SubscriptionGrant(granted[0]));
-                });
+                this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) =>
+                    error ? reject(error) : resolve(new SubscriptionGrant(granted[0])));
             } else {
                 resolve(this._store[topic].grant);
             }
