@@ -55,6 +55,14 @@ export class AppComponent implements OnDestroy {
     messages: Array<Foo> = [];
 
     constructor(private _mqttService: MqttService) {
+        
+        /**
+         * Tracks connection status.
+         */
+        this._mqttService.status().subscribe((s: ConnectionStatus) => {
+            const status = s === ConnectionStatus.CONNECTED ? 'CONNECTED' : 'DISCONNECTED';
+            console.log(`Mqtt client connection status: ${status}`);
+        });
     }
 
     /**

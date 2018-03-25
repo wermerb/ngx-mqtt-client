@@ -1,5 +1,5 @@
 import {Component, OnDestroy} from '@angular/core';
-import {MqttService, SubscriptionGrant} from './ngx-mqtt-client';
+import {ConnectionStatus, MqttService, SubscriptionGrant} from './ngx-mqtt-client';
 
 export interface Foo {
     bar: string;
@@ -15,6 +15,14 @@ export class AppComponent implements OnDestroy {
     messages: Array<Foo> = [];
 
     constructor(private _mqttService: MqttService) {
+
+        /**
+         * Tracks connection status.
+         */
+        this._mqttService.status().subscribe((s: ConnectionStatus) => {
+            const status = s === ConnectionStatus.CONNECTED ? 'CONNECTED' : 'DISCONNECTED';
+            console.log(`Mqtt client connection status: ${status}`);
+        });
     }
 
     /**
@@ -30,7 +38,7 @@ export class AppComponent implements OnDestroy {
                 } else {
                     this.messages.push(msg);
                 }
-            });
+            }, err => console.log(err));
     }
 
 
