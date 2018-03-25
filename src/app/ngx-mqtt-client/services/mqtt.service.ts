@@ -91,9 +91,11 @@ export class MqttService {
     }
 
     private removeTopic(topic: string): void {
-        this._store[topic].stream.unsubscribe();
-        const {[topic]: removed, ...newStore} = this._store;
-        this._store = newStore;
+        if (this._store[topic]) {
+            this._store[topic].stream.unsubscribe();
+            const {[topic]: removed, ...newStore} = this._store;
+            this._store = newStore;
+        }
     }
 
     private updateTopic(topic: string, message: string): void {
@@ -107,9 +109,11 @@ export class MqttService {
     }
 
     private addTopic<T>(topic: string, grant: SubscriptionGrant): Observable<T> {
-        if (!this._store[topic]) {
-            this._store[topic] = {grant, stream: new Subject<T>()};
+        if (this._store[topic]) {
+            this.removeTopic(topic);
         }
+
+        this._store[topic] = {grant, stream: new Subject<T>()};
         return this._store[topic].stream;
     }
 }
