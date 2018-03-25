@@ -5,7 +5,7 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
-import {mergeMap, switchMap} from 'rxjs/operators';
+import {concatMap, switchMap} from 'rxjs/operators';
 import 'rxjs/add/observable/throw';
 import {of} from 'rxjs/observable/of';
 import {SubscriptionGrant} from '../models/subscription-grant';
@@ -36,7 +36,7 @@ export class MqttService {
                 resolve(this._store[topic].grant);
             }
         })).pipe(
-            mergeMap((granted: SubscriptionGrant) =>
+            concatMap((granted: SubscriptionGrant) =>
                 [of(granted), this.addTopic<T>(topic, granted)]
             ),
             switchMap((message: any) => message)
@@ -53,13 +53,9 @@ export class MqttService {
         }
 
         return fromPromise(new Promise((resolve, reject) => {
-            this._client.unsubscribe(topic, (error: Error) => {
-                if (error) {
-                    reject(error);
-                }
-
-                resolve();
-            });
+            this._client.unsubscribe(topic, (error: Error) =>
+                error ? reject(error) : resolve()
+            );
         }));
     }
 
@@ -86,13 +82,9 @@ export class MqttService {
                 msg = message;
             }
 
-            this._client.publish(topic, msg, options, (error: Error) => {
-                if (error) {
-                    reject(error);
-                }
-
-                resolve();
-            });
+            this._client.publish(topic, msg, options, (error: Error) =>
+                error ? reject(error) : resolve()
+            );
         }));
     }
 
