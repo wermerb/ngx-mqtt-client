@@ -5,7 +5,7 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
-import {concatMap, switchMap} from 'rxjs/operators';
+import {concatMap, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {of} from 'rxjs/observable/of';
 import {SubscriptionGrant} from '../models/subscription-grant';
 import {TopicStore} from '../models/topic-store';
@@ -25,7 +25,7 @@ export class MqttService {
         this._client = mqtt.connect(null, config);
         this._client.on('message', (topic, message) => this.updateTopic(topic, message.toString()));
         this._client.on('offline', () => this._status.next(ConnectionStatus.DISCONNECTED));
-        this._client.on('online', () => this._status.next(ConnectionStatus.CONNECTED));
+        this._client.on('connect', () => this._status.next(ConnectionStatus.CONNECTED));
     }
 
     subscribeTo<T>(topic: string, options?: IClientSubscribeOptions): Observable<(SubscriptionGrant | T)> {
@@ -96,8 +96,10 @@ export class MqttService {
         this._client.end(force, cb);
     }
 
-    status(): BehaviorSubject<ConnectionStatus> {
-        return this._status;
+    status(): Observable<ConnectionStatus> {
+        return this._status.pipe(
+            distinctUntilChanged()
+        );
     }
 
     private removeTopic(topic: string): void {
