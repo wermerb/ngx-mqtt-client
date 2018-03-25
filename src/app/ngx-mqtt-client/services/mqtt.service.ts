@@ -59,28 +59,19 @@ export class MqttService {
     }
 
     unsubscribeFrom(topic: string | Array<string>): Observable<any> {
-        return this._status.pipe(
-            switchMap(status => {
-                if (status === ConnectionStatus.DISCONNECTED) {
-                    return this.throwError();
-                }
+        if (Array.isArray(topic)) {
+            topic.forEach(t => {
+                this.removeTopic(t);
+            });
+        } else {
+            this.removeTopic(topic);
+        }
 
-                if (Array.isArray(topic)) {
-                    topic.forEach(t => {
-                        this.removeTopic(t);
-                    });
-                } else {
-                    this.removeTopic(topic);
-                }
-
-                return fromPromise(new Promise((resolve, reject) => {
-                    this._client.unsubscribe(topic, (error: Error) =>
-                        error ? reject(error) : resolve()
-                    );
-                }));
-            }),
-            first()
-        );
+        return fromPromise(new Promise((resolve, reject) => {
+            this._client.unsubscribe(topic, (error: Error) =>
+                error ? reject(error) : resolve()
+            );
+        }));
     }
 
     publishTo<T>(topic: string,
