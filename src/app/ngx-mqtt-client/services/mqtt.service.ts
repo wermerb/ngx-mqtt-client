@@ -13,6 +13,7 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {ConnectionStatus} from '../models/connection-status';
 import 'rxjs/add/observable/throw';
 import {ErrorObservable} from 'rxjs/observable/ErrorObservable';
+import {concat} from 'rxjs/observable/concat';
 
 @Injectable()
 export class MqttService {
@@ -37,13 +38,16 @@ export class MqttService {
                     return this.throwError();
                 }
 
+                if (this._store[topic]) {
+                    const grant = this._store[topic].grant;
+                    const stream = this._store[topic].stream;
+                    stream.observers.forEach(obs => obs.complete());
+                    return concat(of(grant), stream);
+                }
+
                 return fromPromise(new Promise((resolve, reject) => {
-                    if (!this._store[topic]) {
-                        this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) =>
-                            error ? reject(error) : resolve(new SubscriptionGrant(granted[0])));
-                    } else {
-                        resolve(this._store[topic].grant);
-                    }
+                    this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) =>
+                        error ? reject(error) : resolve(new SubscriptionGrant(granted[0])));
                 })).pipe(
                     concatMap((granted: SubscriptionGrant) =>
                         [of(granted), this.addTopic<T>(topic, granted)]
@@ -74,7 +78,8 @@ export class MqttService {
                         error ? reject(error) : resolve()
                     );
                 }));
-            })
+            }),
+            first()
         );
     }
 
@@ -148,10 +153,6 @@ export class MqttService {
     }
 
     private addTopic<T>(topic: string, grant: SubscriptionGrant): Observable<T> {
-        if (this._store[topic]) {
-            this.removeTopic(topic);
-        }
-
         this._store[topic] = {grant, stream: new Subject<T>()};
         return this._store[topic].stream;
     }
