@@ -55,7 +55,7 @@ export class AppComponent implements OnDestroy {
     messages: Array<Foo> = [];
 
     constructor(private _mqttService: MqttService) {
-        
+
         /**
          * Tracks connection status.
          */
@@ -67,17 +67,20 @@ export class AppComponent implements OnDestroy {
 
     /**
      * Subscribes to fooBar topic.
-     * The first emitted value will be a {@see SubscriptionGrant} to confirm your subscription was successful. 
+     * The first emitted value will be a {@see SubscriptionGrant} to confirm your subscription was successful.
      * After that the subscription will only emit new value if someone publishes into the fooBar topic.
      * */
     subscribe(): void {
         this._mqttService.subscribeTo<Foo>('fooBar')
-            .subscribe((msg: SubscriptionGrant | Foo) => {
-                if (msg instanceof SubscriptionGrant) {
-                    console.log('Successfully subscribed!');
-                } else {
-                    this.messages.push(msg);
-                }
+            .subscribe({
+                next: (msg: SubscriptionGrant | Foo) => {
+                    if (msg instanceof SubscriptionGrant) {
+                        console.log('Successfully subscribed!');
+                    } else {
+                        this.messages.push(msg);
+                    }
+                },
+                error: (error: Error) => console.error(error.message)
             });
     }
 
@@ -88,7 +91,7 @@ export class AppComponent implements OnDestroy {
     sendMsg(): void {
         this._mqttService.publishTo<Foo>('fooBar', {bar: 'foo'}).subscribe({
             next: () => console.log('message sent'),
-            error: () => console.error('oopsie something went wrong')
+            error: (error: Error) => console.error(`oopsie something went wrong could not sent message: ${error.message}`)
         });
     }
 
@@ -98,8 +101,8 @@ export class AppComponent implements OnDestroy {
     unsubscribe(): void {
         this._mqttService.unsubscribeFrom('fooBar').subscribe({
             next: () => console.log('Successfully unsubscribed!'),
-            error: (err: Error) => console.error(`oopsie something went wrong: ${err.message}`)
-        })
+            error: (err: Error) => console.error(`oopsie something went wrong could not unsubscribe: ${err.message}`)
+        });
     }
 
     /**

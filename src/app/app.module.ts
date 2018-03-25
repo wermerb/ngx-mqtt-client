@@ -14,7 +14,8 @@ import {NgxMqttClientModule} from './ngx-mqtt-client';
             host: 'broker.hivemq.com',
             protocol: 'ws',
             port: 8000,
-            path: '/mqtt'
+            path: '/mqtt',
+            keepalive: 5
         })
     ],
     providers: [],
