@@ -16,7 +16,8 @@ yarn add ngx-social-login
 
 ### Import the module
 
-Import `NgxMqttClientModule` into any of your `Modules`.
+Import `NgxMqttClientModule` into your `Module`. 
+It is also possible to import into multiple modules if you need multiple mqtt connections. 
 You can provide any configuration that is supported by MQTT.js.
 
 ```javascript
