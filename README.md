@@ -16,7 +16,7 @@ yarn add ngx-social-login
 
 ### Import the module
 
-Import `NgxMqttClientModule` into your `Module`.
+Import `NgxMqttClientModule` into any of your `Modules`.
 You can provide any configuration that is supported by MQTT.js.
 
 ```javascript
@@ -24,7 +24,7 @@ You can provide any configuration that is supported by MQTT.js.
     declarations: [ ... ],
     imports: [
         ...
-        NgxMqttClientModule.forRoot({
+        NgxMqttClientModule.withOptions({
             host: 'broker.hivemq.com',
             protocol: 'ws',
             port: 8000,

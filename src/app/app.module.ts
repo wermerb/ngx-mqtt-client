@@ -10,7 +10,7 @@ import {NgxMqttClientModule} from './ngx-mqtt-client';
     ],
     imports: [
         BrowserModule,
-        NgxMqttClientModule.forRoot({
+        NgxMqttClientModule.withOptions({
             host: 'broker.hivemq.com',
             protocol: 'ws',
             port: 8000,

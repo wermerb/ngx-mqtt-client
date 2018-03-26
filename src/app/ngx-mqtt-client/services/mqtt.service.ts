@@ -46,8 +46,17 @@ export class MqttService {
                 }
 
                 return fromPromise(new Promise((resolve, reject) => {
-                    this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) =>
-                        error ? reject(error) : resolve(new SubscriptionGrant(granted[0])));
+                    this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) => {
+                        // https://github.com/mqttjs/MQTT.js/issues/529
+                        // workaround until they fix this issue
+                        const qos = options ? options.qos : 0;
+                        const grantedWorkaround = granted.length > 0 ? new SubscriptionGrant(granted[0]) : new SubscriptionGrant({
+                            topic,
+                            qos
+                        });
+
+                        return error ? reject(error) : resolve(grantedWorkaround);
+                    });
                 })).pipe(
                     concatMap((granted: SubscriptionGrant) =>
                         [of(granted), this.addTopic<T>(topic, granted)]

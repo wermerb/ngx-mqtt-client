@@ -7,7 +7,7 @@ import {IClientOptions} from 'mqtt';
     providers: [MqttService]
 })
 export class NgxMqttClientModule {
-    static forRoot(config: IClientOptions): ModuleWithProviders {
+    static withOptions(config: IClientOptions): ModuleWithProviders {
         return {
             ngModule: NgxMqttClientModule,
             providers: [
