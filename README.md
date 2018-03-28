@@ -1,5 +1,4 @@
-# NgxMqttClient [![npm version](https://badge.fury.io/js/ngx-mqtt-client.svg)](https://badge.fury.io/js/ngx-mqtt-client) [![bitHound Code](https://www.bithound.io/github/wermerb/ngx-mqtt-client/badges/code.svg)](https://www.bithound.io/github/wermerb/ngx-mqtt-client)
-
+# NgxMqttClient [![npm version](https://badge.fury.io/js/ngx-mqtt-client.svg)](https://badge.fury.io/js/ngx-mqtt-client) ![coverage](https://img.shields.io/badge/coverage-86%25-brightgreen.svg) [![bitHound Code](https://www.bithound.io/github/wermerb/ngx-mqtt-client/badges/code.svg)](https://www.bithound.io/github/wermerb/ngx-mqtt-client)
 
 This is a MQTT.js wrapper which provides reactive and strongly typed api for mqtt.
 
