@@ -58,6 +58,8 @@ export class AppComponent implements OnDestroy {
 
     messages: Array<Foo> = [];
 
+    status: Array<string> = [];
+
     constructor(private _mqttService: MqttService) {
 
         /**
@@ -65,7 +67,7 @@ export class AppComponent implements OnDestroy {
          */
         this._mqttService.status().subscribe((s: ConnectionStatus) => {
             const status = s === ConnectionStatus.CONNECTED ? 'CONNECTED' : 'DISCONNECTED';
-            console.log(`Mqtt client connection status: ${status}`);
+            this.status.push(`Mqtt client connection status: ${status}`);
         });
     }
 
@@ -79,12 +81,14 @@ export class AppComponent implements OnDestroy {
             .subscribe({
                 next: (msg: SubscriptionGrant | Foo) => {
                     if (msg instanceof SubscriptionGrant) {
-                        console.log('Successfully subscribed!');
+                        this.status.push('Subscribed to fooBar topic!');
                     } else {
                         this.messages.push(msg);
                     }
                 },
-                error: (error: Error) => console.error(error.message)
+                error: (error: Error) => {
+                    this.status.push(`Something went wrong: ${error.message}`);
+                }
             });
     }
 
@@ -94,8 +98,12 @@ export class AppComponent implements OnDestroy {
      */
     sendMsg(): void {
         this._mqttService.publishTo<Foo>('fooBar', {bar: 'foo'}).subscribe({
-            next: () => console.log('message sent'),
-            error: (error: Error) => console.error(`oopsie something went wrong could not sent message: ${error.message}`)
+            next: () => {
+                this.status.push('Message sent to fooBar topic');
+            },
+            error: (error: Error) => {
+                this.status.push(`Something went wrong: ${error.message}`);
+            }
         });
     }
 
@@ -104,8 +112,12 @@ export class AppComponent implements OnDestroy {
      */
     unsubscribe(): void {
         this._mqttService.unsubscribeFrom('fooBar').subscribe({
-            next: () => console.log('Successfully unsubscribed!'),
-            error: (err: Error) => console.error(`oopsie something went wrong could not unsubscribe: ${err.message}`)
+            next: () => {
+                this.status.push('Unsubscribe from fooBar topic')
+            },
+            error: (error: Error) => {
+                this.status.push(`Something went wrong: ${error.message}`);
+            }
         });
     }
 

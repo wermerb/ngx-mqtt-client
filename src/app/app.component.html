@@ -1,9 +1,18 @@
-<button (click)="subscribe()">SUBSCRIBE TO TEST TOPIC</button>
-<button (click)="unsubscribe()">UNSUBSCRIBE FROM TEST TOPIC</button>
-<button (click)="sendMsg()">SEND TEST MESSAGE</button>
+<button mat-raised-button (click)="subscribe()">SUBSCRIBE TO FOOBAR TOPIC</button>
+<button mat-raised-button (click)="sendMsg()">SEND FOOBAR MESSAGE</button>
+<button mat-raised-button (click)="unsubscribe()">UNSUBSCRIBE FROM FOOBAR TOPIC</button>
 
-<div>
-    <div *ngFor="let message of messages">
-        {{message | json}}
+<div fxLayout>
+    <div fxFlex="20">
+        <h1>Messages:</h1>
+        <p *ngFor="let message of messages">
+            {{message | json}}
+        </p>
+    </div>
+    <div>
+        <h1>Status info:</h1>
+        <p *ngFor="let statusMessage of status">
+            {{statusMessage}}
+        </p>
     </div>
 </div>
