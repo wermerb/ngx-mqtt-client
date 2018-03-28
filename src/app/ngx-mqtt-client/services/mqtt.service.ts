@@ -1,11 +1,11 @@
-import {Inject, Injectable} from '@angular/core';
+import {Inject, Injectable, Optional} from '@angular/core';
 import * as mqtt from 'mqtt';
 import {IClientOptions, IClientPublishOptions, IClientSubscribeOptions, ISubscriptionGrant, MqttClient} from 'mqtt';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
-import {concatMap, distinctUntilChanged, first, switchMap} from 'rxjs/operators';
+import {concatMap, distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {of} from 'rxjs/observable/of';
 import {SubscriptionGrant} from '../models/subscription-grant';
 import {TopicStore} from '../models/topic-store';
@@ -14,6 +14,7 @@ import {ConnectionStatus} from '../models/connection-status';
 import 'rxjs/add/observable/throw';
 import {ErrorObservable} from 'rxjs/observable/ErrorObservable';
 import {concat} from 'rxjs/observable/concat';
+import {MQTT_MOCK} from '../tokens/mqtt-mock.injection-token';
 
 @Injectable()
 export class MqttService {
@@ -24,8 +25,9 @@ export class MqttService {
 
     private _store: { [topic: string]: TopicStore<any> } = {};
 
-    constructor(@Inject(MQTT_CONFIG) config: IClientOptions) {
-        this._client = mqtt.connect(null, config);
+    constructor(@Inject(MQTT_CONFIG) config: IClientOptions,
+                @Optional() @Inject(MQTT_MOCK) mqttMock) {
+        this._client = mqttMock ? mqttMock.connect(null, config) : mqtt.connect(null, config);
         this._client.on('message', (topic, message) => this.updateTopic(topic, message.toString()));
         this._client.on('offline', () => this._status.next(ConnectionStatus.DISCONNECTED));
         this._client.on('connect', () => this._status.next(ConnectionStatus.CONNECTED));
@@ -47,15 +49,18 @@ export class MqttService {
 
                 return fromPromise(new Promise((resolve, reject) => {
                     this._client.subscribe(topic, options, (error: Error, granted: Array<ISubscriptionGrant>) => {
-                        // https://github.com/mqttjs/MQTT.js/issues/529
-                        // workaround until they fix this issue
-                        const qos = options ? options.qos : 0;
-                        const grantedWorkaround = granted.length > 0 ? new SubscriptionGrant(granted[0]) : new SubscriptionGrant({
-                            topic,
-                            qos
-                        });
-
-                        return error ? reject(error) : resolve(grantedWorkaround);
+                        if (error) {
+                            reject(error);
+                        } else {
+                            // https://github.com/mqttjs/MQTT.js/issues/529
+                            // workaround until they fix this issue
+                            const qos = options ? options.qos : 0;
+                            const grantedWorkaround = granted.length > 0 ? new SubscriptionGrant(granted[0]) : new SubscriptionGrant({
+                                topic,
+                                qos
+                            });
+                            resolve(grantedWorkaround);
+                        }
                     });
                 })).pipe(
                     concatMap((granted: SubscriptionGrant) =>
@@ -86,39 +91,28 @@ export class MqttService {
     publishTo<T>(topic: string,
                  message: T,
                  options?: IClientPublishOptions): Observable<any> {
-        return this._status.pipe(
-            switchMap(status => {
-                if (status === ConnectionStatus.DISCONNECTED) {
-                    return this.throwError();
+        return fromPromise(new Promise((resolve, reject) => {
+            let msg: string | Buffer;
+
+            if (!(message instanceof Buffer)) {
+                switch (typeof message) {
+                    case 'string':
+                    case 'number':
+                    case 'boolean':
+                        msg = message.toString();
+                        break;
+                    case 'object':
+                        msg = JSON.stringify(message);
+                        break;
                 }
+            } else {
+                msg = message;
+            }
 
-                return fromPromise(new Promise((resolve, reject) => {
-                    let msg: string | Buffer;
-
-                    if (!(message instanceof Buffer)) {
-                        switch (typeof message) {
-                            case 'string':
-                            case 'number':
-                            case 'boolean':
-                                msg = message.toString();
-                                break;
-                            case 'object':
-                                msg = JSON.stringify(message);
-                                break;
-                            default:
-                                msg = message as any;
-                        }
-                    } else {
-                        msg = message;
-                    }
-
-                    this._client.publish(topic, msg, options, (error: Error) =>
-                        error ? reject(error) : resolve()
-                    );
-                }));
-            }),
-            first()
-        );
+            this._client.publish(topic, msg, options, (error: Error) =>
+                error ? reject(error) : resolve()
+            );
+        }));
     }
 
     end(force?: boolean, cb?: (...args) => void): void {
