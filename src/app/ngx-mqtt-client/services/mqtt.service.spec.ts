@@ -195,11 +195,11 @@ describe('MqttService', () => {
             let counter = 0;
 
             sut.status().subscribe(status => {
-                if(counter === 0){
+                if (counter === 0) {
                     expect(status).toBe(ConnectionStatus.CONNECTED);
                     counter++;
                     clientOnStore['offline']();
-                }else{
+                } else {
                     expect(status).toBe(ConnectionStatus.DISCONNECTED);
                 }
             })

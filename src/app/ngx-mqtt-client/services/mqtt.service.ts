@@ -5,7 +5,7 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {MQTT_CONFIG} from '../tokens/mqtt-config.injection-token';
 import {fromPromise} from 'rxjs/observable/fromPromise';
-import {concatMap, distinctUntilChanged, switchMap} from 'rxjs/operators';
+import {distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {of} from 'rxjs/observable/of';
 import {SubscriptionGrant} from '../models/subscription-grant';
 import {TopicStore} from '../models/topic-store';
@@ -15,6 +15,7 @@ import 'rxjs/add/observable/throw';
 import {ErrorObservable} from 'rxjs/observable/ErrorObservable';
 import {concat} from 'rxjs/observable/concat';
 import {MQTT_MOCK} from '../tokens/mqtt-mock.injection-token';
+import {merge} from 'rxjs/observable/merge';
 
 @Injectable()
 export class MqttService {
@@ -63,10 +64,12 @@ export class MqttService {
                         }
                     });
                 })).pipe(
-                    concatMap((granted: SubscriptionGrant) =>
-                        [of(granted), this.addTopic<T>(topic, granted)]
-                    ),
-                    switchMap((message: any) => message)
+                    switchMap((granted: SubscriptionGrant) =>
+                        merge(
+                            of(granted),
+                            this.addTopic<T>(topic, granted)
+                        )
+                    )
                 );
             })
         );
