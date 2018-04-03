@@ -9,7 +9,7 @@ import {cold} from 'jasmine-marbles';
 describe('MqttService', () => {
     let sut: MqttService;
     let client: any;
-    let clientOnStore: { [key: string]: (...args) => void } = {};
+    const clientOnStore: { [key: string]: (...args) => void } = {};
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -139,7 +139,7 @@ describe('MqttService', () => {
                 error: (err) => {
                     expect(err).toEqual(error);
                 }
-            })
+            });
         });
     });
 
@@ -178,7 +178,7 @@ describe('MqttService', () => {
                 error: (err) => {
                     expect(err).toEqual(error);
                 }
-            })
+            });
         });
     });
 
@@ -187,7 +187,7 @@ describe('MqttService', () => {
             sut.end(true);
 
             expect(client.end).toHaveBeenCalledWith(true, undefined);
-        })
+        });
     });
 
     describe('status', () => {
@@ -202,7 +202,7 @@ describe('MqttService', () => {
                 } else {
                     expect(status).toBe(ConnectionStatus.DISCONNECTED);
                 }
-            })
-        })
+            });
+        });
     });
 });
