@@ -15,7 +15,6 @@ import 'rxjs/add/observable/throw';
 import {ErrorObservable} from 'rxjs/observable/ErrorObservable';
 import {concat} from 'rxjs/observable/concat';
 import {MQTT_MOCK} from '../tokens/mqtt-mock.injection-token';
-import {merge} from 'rxjs/observable/merge';
 
 @Injectable()
 export class MqttService {
@@ -65,7 +64,7 @@ export class MqttService {
                     });
                 })).pipe(
                     switchMap((granted: SubscriptionGrant) =>
-                        merge(
+                        concat(
                             of(granted),
                             this.addTopic<T>(topic, granted)
                         )
