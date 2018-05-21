@@ -1,5 +1,6 @@
 import {Component, OnDestroy} from '@angular/core';
 import {ConnectionStatus, MqttService, SubscriptionGrant} from './ngx-mqtt-client';
+import {IClientOptions} from 'mqtt';
 
 export interface Foo {
     bar: string;
@@ -25,6 +26,15 @@ export class AppComponent implements OnDestroy {
             const status = s === ConnectionStatus.CONNECTED ? 'CONNECTED' : 'DISCONNECTED';
             this.status.push(`Mqtt client connection status: ${status}`);
         });
+    }
+
+    /**
+     * Manages connection manually.
+     * If there is an active connection this will forcefully disconnect that first.
+     * @param {IClientOptions} config
+     */
+    connect(config: IClientOptions): void {
+        this._mqttService.connect(config);
     }
 
     /**

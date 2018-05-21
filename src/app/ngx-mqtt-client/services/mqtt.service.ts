@@ -15,6 +15,7 @@ import 'rxjs/add/observable/throw';
 import {ErrorObservable} from 'rxjs/observable/ErrorObservable';
 import {concat} from 'rxjs/observable/concat';
 import {MQTT_MOCK} from '../tokens/mqtt-mock.injection-token';
+import {MqttConfig} from '../models/mqtt-config';
 
 @Injectable()
 export class MqttService {
@@ -25,9 +26,20 @@ export class MqttService {
 
     private _store: { [topic: string]: TopicStore<any> } = {};
 
-    constructor(@Inject(MQTT_CONFIG) config: IClientOptions,
-                @Optional() @Inject(MQTT_MOCK) mqttMock) {
-        this._client = mqttMock ? mqttMock.connect(null, config) : mqtt.connect(null, config);
+    constructor(@Inject(MQTT_CONFIG) config: MqttConfig,
+                @Optional() @Inject(MQTT_MOCK) private _mqttMock) {
+
+        if (!config.manageConnectionManually) {
+            this.connect(config);
+        }
+    }
+
+    connect(config: IClientOptions): void {
+        if (this._client && this._client.connected) {
+            this._client.end(true);
+        }
+
+        this._client = this._mqttMock ? this._mqttMock.connect(null, config) : mqtt.connect(null, config);
         this._client.on('message', (topic, message) => this.updateTopic(topic, message.toString()));
         this._client.on('offline', () => this._status.next(ConnectionStatus.DISCONNECTED));
         this._client.on('connect', () => this._status.next(ConnectionStatus.CONNECTED));

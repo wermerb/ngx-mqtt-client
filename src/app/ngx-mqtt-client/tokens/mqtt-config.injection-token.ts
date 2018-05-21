@@ -1,4 +1,4 @@
 import {InjectionToken} from '@angular/core';
-import {IClientOptions} from 'mqtt';
+import {MqttConfig} from '../models/mqtt-config';
 
-export const MQTT_CONFIG = new InjectionToken<IClientOptions>('mqtt configuration');
+export const MQTT_CONFIG = new InjectionToken<MqttConfig>('mqtt configuration');

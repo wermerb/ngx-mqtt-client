@@ -29,6 +29,7 @@ It is also possible to import into multiple modules if you need multiple mqtt co
         * You can provide any configuration that is supported by MQTT.js. 
         */
         NgxMqttClientModule.withOptions({
+            manageConnectionManually: true, //this flag will prevent the service to connection automatically
             host: 'broker.hivemq.com',
             protocol: 'ws',
             port: 8000,
@@ -69,6 +70,15 @@ export class AppComponent implements OnDestroy {
             const status = s === ConnectionStatus.CONNECTED ? 'CONNECTED' : 'DISCONNECTED';
             this.status.push(`Mqtt client connection status: ${status}`);
         });
+    }
+    
+     /**
+     * Manages connection manually.
+     * If there is an active connection this will forcefully disconnect that first.
+     * @param {IClientOptions} config
+     */
+    connect(config: IClientOptions): void {
+       this._mqttService.connect(config);
     }
 
     /**

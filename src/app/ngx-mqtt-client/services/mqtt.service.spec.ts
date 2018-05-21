@@ -32,7 +32,7 @@ describe('MqttService', () => {
             ]
         });
 
-        client = jasmine.createSpyObj('client', ['on', 'subscribe', 'unsubscribe', 'publish', 'end']);
+        client = jasmine.createSpyObj('client', ['on', 'subscribe', 'unsubscribe', 'publish', 'end', 'connected']);
         client.on.and.callFake((key: string, value: any) => {
             clientOnStore[key] = value;
         });
@@ -187,6 +187,14 @@ describe('MqttService', () => {
             sut.end(true);
 
             expect(client.end).toHaveBeenCalledWith(true, undefined);
+        });
+    });
+
+    describe('connect', () => {
+        it('should disconnect first if there is an active connection', () => {
+            sut.connect({username: 'foo', password: 'bar'});
+
+            expect(client.end).toHaveBeenCalledWith(true);
         });
     });
 
