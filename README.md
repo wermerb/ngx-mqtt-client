@@ -11,7 +11,7 @@ npm install --save ngx-mqtt-client
 ```
 
 ```sh
-yarn add ngx-social-login
+yarn add  ngx-mqtt-client
 ```
 
 ### Import the module
